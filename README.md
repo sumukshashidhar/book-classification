@@ -127,6 +127,11 @@ All functionality is complete. However, there is a list of improvements that I c
 1. **Storage of books as CSV instead of JSON:** The JSON file format is only particularly useful if the keys in the JSON are variable. However, in this case, the title / description are constant keys for each book. Hence, storing large sets of books as a csv saves considerable space. If there is an API transmission of this data, I would rather it be transmitted as a CSV file or CSV string, rather than as a JSON. _This is for this particular use case of genre classification only. I recognize that for other usecases, the JSON format is advantageous_
 2. **Stricter Error Checking**: The error handling as of now is extremely basic and vague. With more time, I can make
                                 sure that there are better error messages, and in some cases, maybe corrections on the fly
+3. **Logging**: Logging is extremely important, which has helped me numerous times in the past identify defects with code
+                during development and in production. However, due to the limited time constraints, I have not implemented
+                logging in this project
+4. **Extended Testing**: I will also implement extended testing, as the testing that I currently have is extremely limited, and only insures basic functionality, instead of accounting for various edge cases
+
 ## Time Taken
 
-I took approximately 2 hours to code, test and, extensively document my solution.
+I took approximately 2.5 hours to code, test and, extensively document my solution.
