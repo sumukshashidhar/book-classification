@@ -1,9 +1,10 @@
 import unittest
 from src.subroutines.input_utilities import *
 
-SAMPLE_BOOK_LIST_ONE = "./tests/sample_book_list_one.json"
-SAMPLE_BOOK_LIST_TWO = "./tests/sample_book_list_two.json"
-SAMPLE_KEYPHRASE_LIST_ONE = "./tests/keyphrase_list_one.csv"
+SAMPLE_BOOK_LIST_ONE = "./tests/data/sample_book_list_one.json"
+SAMPLE_BOOK_LIST_TWO = "./tests/data/sample_book_list_two.json"
+SAMPLE_KEYPHRASE_LIST_ONE = "./tests/data/keyphrase_list_one.csv"
+SAMPLE_KEYPHRASE_LIST_TWO = "./tests/data/keyphrase_list_two.csv"
 
 
 class TestInputFunctions(unittest.TestCase):
@@ -13,8 +14,8 @@ class TestInputFunctions(unittest.TestCase):
             {
                 "title": "Harry Potter",
                 "description": "The story of a hat with a grudge that makes a school full of children's lives "
-                               "miserable.  Will the lovable groundskeeper be able to keep the school open?  Find "
-                               "out!",
+                "miserable.  Will the lovable groundskeeper be able to keep the school open?  Find "
+                "out!",
             }
         ]
         # check if the two lists have the same elements
@@ -26,7 +27,7 @@ class TestInputFunctions(unittest.TestCase):
             {
                 "title": "The Cat in the Hat",
                 "description": "This bestselling thriller has captivated millions, and teaches the importance of "
-                               "listening to fish.",
+                "listening to fish.",
             },
             {
                 "title": "The Hunger Games",
@@ -40,7 +41,7 @@ class TestInputFunctions(unittest.TestCase):
         expected_keyphrase_dict = {
             "action": [("katana", 6), ("sweet motorcycle", 4)],
             "biography": [("mists of time", 2), ("born and raised", 3)],
-            "how to": [("sweet motorcycle", 6)]
+            "how to": [("sweet motorcycle", 6)],
         }
         self.assertDictEqual(keyphrase_dict, expected_keyphrase_dict)
 
