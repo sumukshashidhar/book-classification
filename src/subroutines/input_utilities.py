@@ -7,8 +7,10 @@ Date Revised: Monday 12th September 2022
 
 # to load the JSON file into python
 import json
+
 # to read CSV files
 from csv import reader
+
 # the typing module, for specifying function arguments and return types
 from typing import List, Dict, Tuple
 
