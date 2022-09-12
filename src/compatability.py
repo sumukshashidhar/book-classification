@@ -1,57 +1,126 @@
+"""
+Main Driver file for the classification
+
+Author: Sumuk Shashidhar (sumuks2@illinois.edu)
+Date Revised: Monday 12th September 2022
+"""
+# for argument parsing
 import argparse
-from typing import List
+
+from subroutines import classification_algorithm
+
 import json
+
+# to read CSV files
 from csv import reader
+
+# the typing module, for specifying function arguments and return types
+from typing import List, Dict, Tuple
 
 
 def read_book_list(filename: str) -> List[dict]:
-    with open(filename, "r") as f:
-        books = json.load(f)
-    return books
+    """
+    Reads the list of books from the JSON file
+    :param filename: str: The path to the JSON file with the list of books
+    :return: Dict: The loaded JSON file
+    """
+    try:
+        with open(filename, "r") as f:
+            # load the books into a python dictionary
+            books = json.load(f)
+        return books
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "The JSON file containing the books was not found. Please try an absolute path."
+        )
+    except json.JSONDecodeError:
+        raise RuntimeError(
+            "The passed JSON file is invalid. Please make sure the file is a valid JSON"
+        )
 
 
-def read_key_list(filename: str) -> dict:
+def read_key_list(filename: str) -> Dict[str, List[Tuple[str, int]]]:
+    """
+    Reads the keyword list based on genres, and stores the points in an interesting data structure
+    :param filename:
+    :return: Dict[str, List[Tuple[str, int]]]: A dictionary where genres are keys and a list of keywords with scores
+                                                are the values
+    """
+    # create a lookup table
     lookup_table = {}
-    with open(filename, 'r') as f:
-        rows = reader(f)
-        # skip the header
-        next(rows)
-        # iterate through the rows
-        for row in rows:
-            # store as variables for readability
-            genre = row[0].strip()
-            keywords_and_points = (row[1].strip(), int(row[2].strip()))
-            if genre not in lookup_table:
-                # add the key
-                lookup_table[genre] = [keywords_and_points]
-            else:
-                lookup_table[genre].append(keywords_and_points)
-        return lookup_table
+    try:
+        # open up the file
+        with open(filename, "r") as f:
+            rows = reader(f)
+            # skip the header
+            next(rows)
+            # iterate through the rows
+            for row in rows:
+                # store as variables for readability
+                genre = row[0].strip()
+                # make a tuple with keywords and points
+                keywords_and_points = (row[1].strip(), int(row[2].strip()))
+                if genre not in lookup_table:
+                    # add the key
+                    lookup_table[genre] = [keywords_and_points]
+                else:
+                    lookup_table[genre].append(keywords_and_points)
+            return lookup_table
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "The CSV file containing the keywords was not found. Please try an absolute path."
+        )
+    except RuntimeError:
+        raise RuntimeError(
+            "The passed CSV file is invalid. Please make sure the file is a valid JSON"
+        )
 
-def evaluate_genre(description, keyword_list):
-    phrases_seen = set()
+
+def evaluate_genre(description: str, keyword_list: List[Tuple[str, int]]) -> float:
+    """
+    For a particular genre, checks for the presence of each keyword in the description and returns a score
+    according to the algorithm:
+
+    Score = Total Keyword Occurrence * Average Point Score of Keywords
+    score = n * k
+
+    :param description: str: the description of the book
+    :param keyword_list: List[Tuple[str, int]: A list of tuples, where the 1st key = keyword and 2nd = points
+    :return: float: The final score for the particular genre
+    """
+    # running total / sum of the scores of the unique keywords
+    # it's faster to do this because it prevents us from having to go back and look for the points later on
     point_scores = 0
-    total_occurances = 0
+    # count of total occurrences of keywords in the description
+    total_occurrence = 0
+    # count of unique occurrences of keywords in the description
+    unique_occurrence = 0
+    # iterate through each keyword tuple
     for keyword_tuple in keyword_list:
-        keyword = keyword_tuple[0]
-        points = keyword_tuple[1]
-        keyword_occurances = description.count(keyword)
-        if keyword_occurances > 0:
-            # we also need to check if its unique or not, and then add points based on that
-            if keyword not in phrases_seen:
-                phrases_seen.add(keyword)
-                point_scores += points
-            total_occurances += keyword_occurances
-    # calculate average point score (k) of all occurances
-    # look for a short circuit if either point scores or phrases len is 0
-    if point_scores == 0 or len(phrases_seen) == 0:
+        # count all occurrences, and if it's non-zero, count it as a unique occurrence and add its points to the total
+        keyword_occurrence = description.count(keyword_tuple[0])
+        if keyword_occurrence > 0:
+            unique_occurrence += 1
+            point_scores += keyword_tuple[1]
+            total_occurrence += keyword_occurrence
+    # this is if there have been no occurrences of the genre.
+    # this also prevents division by 0 in the final return statement
+    if unique_occurrence == 0:
         return 0
-    k = point_scores / len(phrases_seen)
-    # return the genre score (n * k)
-    return total_occurances * k
+    return total_occurrence * (point_scores / unique_occurrence)
 
 
-def score(description, lookup_table):
+def score(
+    description: str, lookup_table: Dict[str, List[Tuple[str, int]]]
+) -> Dict[str, float]:
+    """
+    Scores the book for multiple genres, based on the book's description and a lookup table (generated by an internal
+    utility)
+    :param description: str: The description of the book
+    :param lookup_table: Dict[str, List[Tuple[str, int]]]: A list of keywords and scores in a dict, with the key
+                                                                as the genre
+    :return: Dict[str, float]: A hashmap containing the score for each genre
+    """
     # set description to lowercase to avoid issues with matching
     description = description.lower()
     # make a table of scores and genres
@@ -61,21 +130,38 @@ def score(description, lookup_table):
         table[genre] = evaluate_genre(description, lookup_table[genre])
     return table
 
-parser = argparse.ArgumentParser()
-parser.add_argument('book_list')
-parser.add_argument('keyword_file')
-args = parser.parse_args()
 
+parser = argparse.ArgumentParser(
+    description="Classify books into different genres based on description keywords"
+)
+# add the necessary arguments
+parser.add_argument(
+    "book_list",
+    metavar="B",
+    help="Absolute / Relative Path to the JSON book list",
+    type=str,
+)
+parser.add_argument(
+    "keyword_file",
+    metavar="K",
+    help="Absolute / Relative Path to a file containing keywords",
+    type=str,
+)
+
+# parse them, assign them to variables
+args = parser.parse_args()
 book_list = args.book_list
 keyword_file = args.keyword_file
 
+# try to read the given files
 books = read_book_list(book_list)
 keywords = read_key_list(keyword_file)
 
+# for each book, print out the title, and the classification scores for each genre, as long as it is not 0
 for book in books:
     print(book["title"])
     table = score(book["description"], keywords)
     for genre in table.keys():
         if table[genre] != 0:
-            print(f"{genre}, {int(table[genre])}")
+            print(f"{genre}, {table[genre]}")
     print()
