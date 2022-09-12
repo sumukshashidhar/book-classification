@@ -16,24 +16,16 @@ def read_key_list(filename: str) -> dict:
     lookup_table = {}
     with open(filename, 'r') as f:
         rows = reader(f)
-
         # skip the header
         next(rows)
         # iterate through the rows
         for row in rows:
             # store as variables for readability
-            genre = row[0]
-            keywords_and_points = (row[1], int(row[2]))
+            genre = row[0].strip()
+            keywords_and_points = (row[1].strip(), int(row[2].strip()))
             if genre not in lookup_table:
                 # add the key
                 lookup_table[genre] = [keywords_and_points]
             else:
                 lookup_table[genre].append(keywords_and_points)
         return lookup_table
-
-
-
-
-
-    return lookup_table
-
