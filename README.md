@@ -1,4 +1,8 @@
-# BookBub Take Home
+# Book Classification
+
+This is a proof of concept for classifying large sets of books into different genres based on certain keywords.
+
+P.S: This is also an indication of how I write code for larger projects :)
 
 ## Run Instructions
 
